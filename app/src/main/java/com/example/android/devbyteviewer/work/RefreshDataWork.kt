@@ -17,11 +17,25 @@
 
 package com.example.android.devbyteviewer.work
 
-// TODO (01) Create the RefreshDataWorker class, extend it from CoroutineWorker, and
-// pass in a Context and WorkerParams.
+import android.content.Context
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
+import retrofit2.HttpException
+import com.example.android.devbyteviewer.database.getDatabase
+import com.example.android.devbyteviewer.repository.VideosRepository
 
-// TODO (02) Override the required doWork() method, and create variables for the
-// database and the repository.
+class RefreshDataWorker(appContext: Context, params: WorkerParameters) :
+        CoroutineWorker(appContext, params) {
+    override suspend fun doWork(): Result {
+        val database = getDatabase(applicationContext)
+        val repository = VideosRepository(database)
 
-// TODO (03) Inside doWork(), in a try-catch block, refresh the videos, and
-// use Payload() to return SUCCESS or RETRY result.
+        return try {
+            repository.refreshVideos()
+            Result.success()
+        } catch (e: HttpException) {
+            Result.retry()
+        }
+
+    }
+}
